@@ -4,15 +4,26 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public static GameManager Instance;
+
+    public float cooldownFinnish;
+    public float cooldownDrop;
+
+    public float limit;
+
+    [SerializeField] private Transform _limitBucket;
+
+    private void Awake()
     {
-        
+        Instance = this;
+        limit = _limitBucket.position.y;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void GameOver()
     {
-        
+        Debug.Log("Game Over");
     }
+    
+
+
 }

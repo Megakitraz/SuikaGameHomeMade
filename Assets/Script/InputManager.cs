@@ -12,6 +12,8 @@ public class InputManager : MonoBehaviour
     //private Vector3 _position;
     private float _width;
     private float _height;
+    private float _cameraWidth;
+    private float _limiteWidthToDrop;
 
     [SerializeField] private GameObject _prefabFruitOneModel;
     [SerializeField] private GameObject _prefabFruitOne;
@@ -21,6 +23,8 @@ public class InputManager : MonoBehaviour
 
     private GameObject _fruitToDropModel;
 
+    private float _cooldownDrop;
+
     void Awake()
     {
         Instance = this;
@@ -28,11 +32,25 @@ public class InputManager : MonoBehaviour
         _width = (float)Screen.width / 2.0f;
         _height = (float)Screen.height / 2.0f;
 
+        _cameraWidth = Camera.main.orthographicSize * _width / _height;
+
         _fruitToDropModel = null;
+
+        
+    }
+
+    private void Start()
+    {
+        _cooldownDrop = GameManager.Instance.cooldownDrop;
     }
 
     void Update()
     {
+
+        _cooldownDrop += Time.deltaTime;
+        Debug.Log("_cooldownDrop" + _cooldownDrop);
+        if (_cooldownDrop < GameManager.Instance.cooldownDrop) return;
+
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -41,7 +59,13 @@ public class InputManager : MonoBehaviour
             {
 
                 Vector2 pos = touch.position;
-                pos.x = ((pos.x - _width) / _width) * (_rightBucket.position.x - _prefabFruitOne.transform.lossyScale.x/2f);
+                pos.x = ((pos.x - _width) / _width) * _cameraWidth;
+                float limit = _rightBucket.position.x - _rightBucket.lossyScale.x - _prefabFruitOne.transform.lossyScale.x/2f;
+                if (Mathf.Abs(pos.x) > limit)
+                {
+                    if (pos.x > 0) pos.x = limit;
+                    else pos.x = -limit;
+                }
 
 
                 if (_fruitToDropModel != null) _fruitToDropModel.transform.position = new Vector3(pos.x, _positionY, 0);
@@ -51,17 +75,28 @@ public class InputManager : MonoBehaviour
             {
 
                 Vector2 pos = touch.position;
-                pos.x = ((pos.x - _width) / _width) * (_rightBucket.position.x - _prefabFruitOne.transform.lossyScale.x / 2f);
+                pos.x = ((pos.x - _width) / _width) * _cameraWidth;
+                float limit = _rightBucket.position.x - _rightBucket.lossyScale.x - _prefabFruitOne.transform.lossyScale.x/2f;
+                if (Mathf.Abs(pos.x) > limit)
+                {
+                    if (pos.x > 0) pos.x = limit;
+                    else pos.x = -limit;
+                }
 
                 if (_fruitToDropModel == null) _fruitToDropModel = Instantiate(_prefabFruitOneModel,new Vector3(pos.x, _positionY, 0),Quaternion.identity,transform);
-
 
             }
             else if(touch.phase == TouchPhase.Ended)
             {
 
                 Vector2 pos = touch.position;
-                pos.x = ((pos.x - _width) / _width) * (_rightBucket.position.x - _prefabFruitOne.transform.lossyScale.x / 2f);
+                pos.x = ((pos.x - _width) / _width) * _cameraWidth;
+                float limit = _rightBucket.position.x - _rightBucket.lossyScale.x - _prefabFruitOne.transform.lossyScale.x/2f;
+                if (Mathf.Abs(pos.x) > limit)
+                {
+                    if (pos.x > 0) pos.x = limit;
+                    else pos.x = -limit;
+                }
 
                 if (_fruitToDropModel != null) {
                     _fruitToDropModel.transform.position = new Vector3(pos.x, 0, 0);
@@ -69,6 +104,8 @@ public class InputManager : MonoBehaviour
                     _fruitToDropModel = null;
                     Instantiate(_prefabFruitOne, new Vector3(pos.x, _positionY, 0), Quaternion.identity, _parentFruit);
                 }
+
+                _cooldownDrop = 0;
             }
         }
     }
